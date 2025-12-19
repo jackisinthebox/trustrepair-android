@@ -2,6 +2,7 @@ package com.trustrepair.app.ui.screens.provider
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,6 +42,22 @@ private enum class ProviderNavItem(
     PROFILE(R.string.provider_nav_profile, Icons.Filled.Person, Icons.Outlined.Person)
 }
 
+// Pipeline stage for visual widget
+private data class PipelineStage(
+    val status: JobStatus,
+    val labelResId: Int,
+    val color: Color,
+    val bgColor: Color
+)
+
+private val pipelineStages = listOf(
+    PipelineStage(JobStatus.PENDING_QUOTE, R.string.job_status_pending_quote, ProviderPurple, ProviderPurpleLight),
+    PipelineStage(JobStatus.QUOTE_SENT, R.string.job_status_quote_sent, TrustBlue, TrustBlueLight),
+    PipelineStage(JobStatus.QUOTE_ACCEPTED, R.string.job_status_quote_accepted, WarningAmber, WarningAmberLight),
+    PipelineStage(JobStatus.CONFIRMED, R.string.job_status_confirmed, SuccessGreen, SuccessGreenLight),
+    PipelineStage(JobStatus.IN_PROGRESS, R.string.job_status_in_progress, WarningAmber, WarningAmberLight)
+)
+
 @Composable
 fun ProviderDashboardScreen(
     onJobRequestClick: (String) -> Unit,
@@ -50,8 +69,13 @@ fun ProviderDashboardScreen(
 ) {
     val provider = currentProvider
     val stats = demoProviderStats
-    val jobRequests = demoJobRequests
-    val activeJobs = demoActiveJobs
+    val allJobs = demoActiveJobs
+
+    // Count jobs by status
+    val jobCountsByStatus = allJobs.groupingBy { it.status }.eachCount()
+
+    // Get urgent/recent jobs (excluding completed)
+    val activeJobs = allJobs.filter { it.status != JobStatus.COMPLETED }
 
     var selectedNavItem by remember { mutableStateOf(ProviderNavItem.REQUESTS) }
 
@@ -93,35 +117,26 @@ fun ProviderDashboardScreen(
                 averageRating = stats.averageRating
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Pipeline widget
+            PipelineWidget(
+                jobCountsByStatus = jobCountsByStatus,
+                onStageClick = { onActiveJobsTab() }
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
-            // New Requests Section
-            if (jobRequests.isNotEmpty()) {
-                SectionHeader(
-                    title = stringResource(R.string.provider_new_requests),
-                    count = jobRequests.size
-                )
-
-                jobRequests.forEach { request ->
-                    JobRequestCard(
-                        request = request,
-                        onClick = { onJobRequestClick(request.id) }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Active Jobs Section
+            // Active jobs list
             if (activeJobs.isNotEmpty()) {
                 SectionHeader(
-                    title = stringResource(R.string.provider_active_jobs),
-                    count = activeJobs.size
+                    title = "Travaux actifs",
+                    count = activeJobs.size,
+                    onSeeAllClick = onActiveJobsTab
                 )
 
-                activeJobs.forEach { job ->
-                    ActiveJobCard(
+                activeJobs.take(5).forEach { job ->
+                    DashboardJobCard(
                         job = job,
                         onClick = { onActiveJobClick(job.id) }
                     )
@@ -132,6 +147,129 @@ fun ProviderDashboardScreen(
             // Bottom spacing
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+}
+
+@Composable
+private fun PipelineWidget(
+    jobCountsByStatus: Map<JobStatus, Int>,
+    onStageClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clickable(onClick = onStageClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Title row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Pipeline",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Gray900
+                )
+                Icon(
+                    imageVector = Icons.Filled.ChevronRight,
+                    contentDescription = null,
+                    tint = Gray400
+                )
+            }
+
+            // Pipeline stages
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                pipelineStages.forEach { stage ->
+                    val count = jobCountsByStatus[stage.status] ?: 0
+                    PipelineStageItem(
+                        stage = stage,
+                        count = count
+                    )
+                }
+            }
+
+            // Visual flow indicator
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                pipelineStages.forEachIndexed { index, stage ->
+                    val count = jobCountsByStatus[stage.status] ?: 0
+
+                    // Stage dot
+                    Box(
+                        modifier = Modifier
+                            .size(if (count > 0) 12.dp else 8.dp)
+                            .clip(CircleShape)
+                            .background(if (count > 0) stage.color else Gray300)
+                    )
+
+                    // Connector line (except after last)
+                    if (index < pipelineStages.lastIndex) {
+                        Box(
+                            modifier = Modifier
+                                .width(24.dp)
+                                .height(2.dp)
+                                .background(Gray200)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PipelineStageItem(
+    stage: PipelineStage,
+    count: Int
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.width(64.dp)
+    ) {
+        // Count circle
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(if (count > 0) stage.bgColor else Gray100),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = count.toString(),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (count > 0) stage.color else Gray400
+            )
+        }
+
+        // Label
+        Text(
+            text = stringResource(stage.labelResId),
+            fontSize = 11.sp,
+            color = if (count > 0) Gray700 else Gray400,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
@@ -223,7 +361,6 @@ private fun StatsRow(
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Earned this month
         StatCard(
             modifier = Modifier.weight(1f),
             label = stringResource(R.string.provider_stats_month),
@@ -233,7 +370,6 @@ private fun StatsRow(
             iconTint = ProviderPurple
         )
 
-        // Pending
         StatCard(
             modifier = Modifier.weight(1f),
             label = stringResource(R.string.provider_stats_pending),
@@ -243,7 +379,6 @@ private fun StatsRow(
             iconTint = WarningAmber
         )
 
-        // Rating
         StatCard(
             modifier = Modifier.weight(1f),
             label = stringResource(R.string.provider_stats_rating),
@@ -309,7 +444,8 @@ private fun StatCard(
 @Composable
 private fun SectionHeader(
     title: String,
-    count: Int
+    count: Int,
+    onSeeAllClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -317,154 +453,54 @@ private fun SectionHeader(
             .padding(horizontal = 16.dp)
             .padding(bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
-            text = title,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Gray900
-        )
-
-        // Count badge
-        Surface(
-            shape = CircleShape,
-            color = ProviderPurple
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = count.toString(),
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                fontSize = 12.sp,
+                text = title,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                color = Gray900
             )
-        }
-    }
-}
 
-@Composable
-private fun JobRequestCard(
-    request: JobRequest,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Top row: Job type icon + title + time
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+            Surface(
+                shape = CircleShape,
+                color = ProviderPurple
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    // Job type icon
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(TrustBlueLight),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Build,
-                            contentDescription = null,
-                            tint = TrustBlue,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    Column {
-                        Text(
-                            text = request.jobType,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Gray900
-                        )
-                        Text(
-                            text = request.client.name,
-                            fontSize = 14.sp,
-                            color = Gray500
-                        )
-                    }
-                }
-
-                // Time ago
                 Text(
-                    text = stringResource(R.string.provider_time_ago, request.receivedAgo),
+                    text = count.toString(),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                     fontSize = 12.sp,
-                    color = Gray400
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
                 )
             }
+        }
 
-            // Description
+        TextButton(onClick = onSeeAllClick) {
             Text(
-                text = request.description,
+                text = "Voir tout",
                 fontSize = 14.sp,
-                color = Gray600,
-                lineHeight = 20.sp,
-                maxLines = 2
+                color = ProviderPurple
             )
-
-            // Bottom row: Location + distance + expires
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Location
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.LocationOn,
-                        contentDescription = null,
-                        tint = Gray400,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = "${request.location} (${request.distanceKm} km)",
-                        fontSize = 13.sp,
-                        color = Gray500
-                    )
-                }
-
-                // Expires badge
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = WarningAmberLight
-                ) {
-                    Text(
-                        text = stringResource(R.string.provider_expires_in, request.expiresIn),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = WarningAmberDark
-                    )
-                }
-            }
         }
     }
 }
 
 @Composable
-private fun ActiveJobCard(
+private fun DashboardJobCard(
     job: ActiveJob,
     onClick: () -> Unit
 ) {
+    val isEarlyStage = job.status in listOf(
+        JobStatus.PENDING_QUOTE,
+        JobStatus.QUOTE_SENT,
+        JobStatus.QUOTE_ACCEPTED
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -495,7 +531,7 @@ private fun ActiveJobCard(
                             .clip(CircleShape)
                             .background(
                                 Brush.linearGradient(
-                                    colors = listOf(ProviderPurple, ProviderPurple.copy(alpha = 0.7f))
+                                    colors = listOf(ProviderPurple, ProviderPurpleDark)
                                 )
                             ),
                         contentAlignment = Alignment.Center
@@ -523,86 +559,90 @@ private fun ActiveJobCard(
                     }
                 }
 
-                // Status badge
+                // Status badge (use the shared one)
                 StatusBadge(status = job.status)
             }
 
-            // Date and time
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.CalendarToday,
-                    contentDescription = null,
-                    tint = Gray400,
-                    modifier = Modifier.size(16.dp)
-                )
-                Text(
-                    text = "${job.date}, ${job.timeSlot}",
-                    fontSize = 14.sp,
-                    color = Gray600
-                )
-            }
+            // Description
+            Text(
+                text = job.description,
+                fontSize = 14.sp,
+                color = Gray600,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
 
-            // Address (truncated)
+            // Bottom info row
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Filled.LocationOn,
-                    contentDescription = null,
-                    tint = Gray400,
-                    modifier = Modifier.size(16.dp)
-                )
-                Text(
-                    text = job.address,
-                    fontSize = 14.sp,
-                    color = Gray500,
-                    maxLines = 1
-                )
+                // Date or urgency
+                if (isEarlyStage && job.urgency.isNotEmpty()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Schedule,
+                            contentDescription = null,
+                            tint = WarningAmberDark,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = job.urgency,
+                            fontSize = 13.sp,
+                            color = WarningAmberDark,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                } else if (job.date.isNotEmpty()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.CalendarToday,
+                            contentDescription = null,
+                            tint = Gray400,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = if (job.timeSlot.isNotEmpty()) "${job.date}, ${job.timeSlot}" else job.date,
+                            fontSize = 13.sp,
+                            color = Gray600
+                        )
+                    }
+                }
+
+                // Expires badge for pending quotes
+                if (job.status == JobStatus.PENDING_QUOTE && job.expiresIn.isNotEmpty()) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = ErrorRedLight
+                    ) {
+                        Text(
+                            text = "Expire dans ${job.expiresIn}",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = ErrorRed
+                        )
+                    }
+                }
+
+                // Price if available
+                job.priceBreakdown?.let { breakdown ->
+                    Text(
+                        text = "${breakdown.total} €",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = SuccessGreenDark
+                    )
+                }
             }
         }
-    }
-}
-
-@Composable
-private fun StatusBadge(status: JobStatus) {
-    val (backgroundColor, textColor, text) = when (status) {
-        JobStatus.CONFIRMED -> Triple(
-            SuccessGreenLight,
-            SuccessGreenDark,
-            stringResource(R.string.job_status_confirmed)
-        )
-        JobStatus.EN_ROUTE -> Triple(
-            TrustBlueLight,
-            TrustBlueDark,
-            stringResource(R.string.job_status_en_route)
-        )
-        JobStatus.IN_PROGRESS -> Triple(
-            WarningAmberLight,
-            WarningAmberDark,
-            stringResource(R.string.job_status_in_progress)
-        )
-        JobStatus.COMPLETED -> Triple(
-            Gray200,
-            Gray700,
-            stringResource(R.string.job_status_completed)
-        )
-    }
-
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = backgroundColor
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            color = textColor
-        )
     }
 }
 
@@ -660,37 +700,18 @@ private fun ProviderDashboardScreenPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun DashboardHeaderPreview() {
-    TrustRepairTheme {
-        DashboardHeader(
-            firstName = "Karim",
-            initials = "KD",
-            avatarColor = ProviderGreen,
-            onNotificationClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun StatsRowPreview() {
-    TrustRepairTheme {
-        StatsRow(
-            earnedThisMonth = 2450,
-            pendingAmount = 180,
-            averageRating = 4.9f
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun JobRequestCardPreview() {
+private fun PipelineWidgetPreview() {
     TrustRepairTheme {
         Box(modifier = Modifier.padding(16.dp)) {
-            JobRequestCard(
-                request = demoJobRequests[0],
-                onClick = {}
+            PipelineWidget(
+                jobCountsByStatus = mapOf(
+                    JobStatus.PENDING_QUOTE to 2,
+                    JobStatus.QUOTE_SENT to 1,
+                    JobStatus.QUOTE_ACCEPTED to 1,
+                    JobStatus.CONFIRMED to 1,
+                    JobStatus.IN_PROGRESS to 1
+                ),
+                onStageClick = {}
             )
         }
     }
@@ -698,10 +719,10 @@ private fun JobRequestCardPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun ActiveJobCardPreview() {
+private fun DashboardJobCardPreview() {
     TrustRepairTheme {
         Box(modifier = Modifier.padding(16.dp)) {
-            ActiveJobCard(
+            DashboardJobCard(
                 job = demoActiveJobs[0],
                 onClick = {}
             )

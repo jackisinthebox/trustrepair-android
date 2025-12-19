@@ -281,12 +281,15 @@ val demoJobRequests = listOf(
     )
 )
 
-// Active jobs
+// Job pipeline statuses (full lifecycle)
 enum class JobStatus {
-    CONFIRMED,
-    EN_ROUTE,
-    IN_PROGRESS,
-    COMPLETED
+    PENDING_QUOTE,    // New request, no quote sent yet
+    QUOTE_SENT,       // Quote sent, awaiting client response
+    QUOTE_ACCEPTED,   // Client accepted, needs scheduling confirmation
+    CONFIRMED,        // Scheduled and confirmed
+    EN_ROUTE,         // Provider is on the way
+    IN_PROGRESS,      // Work is being done
+    COMPLETED         // Work finished
 }
 
 data class ActiveJob(
@@ -294,19 +297,94 @@ data class ActiveJob(
     val client: Client,
     val jobType: String,
     val description: String,
-    val date: String,
-    val timeSlot: String,
+    val date: String,              // Empty or "À planifier" for early stages
+    val timeSlot: String,          // Empty for early stages
     val status: JobStatus,
     val address: String,
     val accessCode: String,
     val accessNotes: String,
-    val priceBreakdown: PriceBreakdown,
-    val isFixed: Boolean
+    val priceBreakdown: PriceBreakdown?,  // Null if no quote yet
+    val isFixed: Boolean?,                 // Null if no quote yet
+    val urgency: String = "",              // For early stages
+    val availability: String = "",         // For early stages
+    val receivedAgo: String = "",          // For display "Il y a X"
+    val expiresIn: String = ""             // For pending quotes
 )
 
+// All jobs in the pipeline (unified view)
 val demoActiveJobs = listOf(
+    // Stage 1: PENDING_QUOTE - New requests needing quotes
     ActiveJob(
         id = "job1",
+        client = demoClients[0],
+        jobType = "Plomberie",
+        description = "Fuite sous évier, le joint du siphon semble abîmé",
+        date = "",
+        timeSlot = "",
+        status = JobStatus.PENDING_QUOTE,
+        address = "12 rue des Lilas, 78000 Versailles",
+        accessCode = "4521B",
+        accessNotes = "3ème étage, interphone Dupont",
+        priceBreakdown = null,
+        isFixed = null,
+        urgency = "Dès que possible",
+        availability = "En semaine, après-midi",
+        receivedAgo = "15 min",
+        expiresIn = "2h"
+    ),
+    ActiveJob(
+        id = "job2",
+        client = demoClients[1],
+        jobType = "Plomberie",
+        description = "Chauffe-eau qui fuit par le bas",
+        date = "",
+        timeSlot = "",
+        status = JobStatus.PENDING_QUOTE,
+        address = "8 avenue Jean Jaurès, 78150 Le Chesnay",
+        accessCode = "",
+        accessNotes = "Interphone MARTIN",
+        priceBreakdown = null,
+        isFixed = null,
+        urgency = "Cette semaine",
+        availability = "Flexible",
+        receivedAgo = "45 min",
+        expiresIn = "1h15"
+    ),
+    // Stage 2: QUOTE_SENT - Awaiting client response
+    ActiveJob(
+        id = "job3",
+        client = Client(4, "Thomas R.", "TR", "2023", true, "+33 6 55 44 33 22"),
+        jobType = "Plomberie",
+        description = "Débouchage canalisation cuisine",
+        date = "Mercredi 22 janvier",
+        timeSlot = "9h - 12h",
+        status = JobStatus.QUOTE_SENT,
+        address = "25 rue Victor Hugo, 78000 Versailles",
+        accessCode = "1234",
+        accessNotes = "RDC gauche",
+        priceBreakdown = PriceBreakdown(labor = 90, parts = 30),
+        isFixed = true,
+        receivedAgo = "2h"
+    ),
+    // Stage 3: QUOTE_ACCEPTED - Client accepted, needs confirmation
+    ActiveJob(
+        id = "job4",
+        client = Client(5, "Claire B.", "CB", "2022", true, "+33 6 77 88 99 00"),
+        jobType = "Plomberie",
+        description = "Remplacement joint chasse d'eau",
+        date = "Jeudi 23 janvier",
+        timeSlot = "14h - 17h",
+        status = JobStatus.QUOTE_ACCEPTED,
+        address = "3 place du Marché, 78000 Versailles",
+        accessCode = "5678",
+        accessNotes = "2ème étage, porte bleue",
+        priceBreakdown = PriceBreakdown(labor = 60, parts = 25),
+        isFixed = true,
+        receivedAgo = "1 jour"
+    ),
+    // Stage 4: CONFIRMED - Scheduled
+    ActiveJob(
+        id = "job5",
         client = demoClients[2],
         jobType = "Plomberie",
         description = "Remplacement robinet cuisine",
@@ -317,6 +395,36 @@ val demoActiveJobs = listOf(
         accessCode = "1234",
         accessNotes = "2ème étage gauche",
         priceBreakdown = PriceBreakdown(labor = 100, parts = 50),
+        isFixed = true
+    ),
+    // Stage 5: IN_PROGRESS - Currently working
+    ActiveJob(
+        id = "job6",
+        client = Client(6, "Marc V.", "MV", "2021", true, "+33 6 11 22 33 44"),
+        jobType = "Plomberie",
+        description = "Installation mitigeur salle de bain",
+        date = "Aujourd'hui",
+        timeSlot = "10h - 13h",
+        status = JobStatus.IN_PROGRESS,
+        address = "42 boulevard de la Reine, 78000 Versailles",
+        accessCode = "9999",
+        accessNotes = "4ème étage avec ascenseur",
+        priceBreakdown = PriceBreakdown(labor = 120, parts = 80),
+        isFixed = true
+    ),
+    // Stage 6: COMPLETED - Finished jobs
+    ActiveJob(
+        id = "job7",
+        client = Client(7, "Anne S.", "AS", "2023", true, "+33 6 99 88 77 66"),
+        jobType = "Plomberie",
+        description = "Réparation fuite WC",
+        date = "Vendredi 17 janvier",
+        timeSlot = "9h - 12h",
+        status = JobStatus.COMPLETED,
+        address = "18 rue Royale, 78000 Versailles",
+        accessCode = "2222",
+        accessNotes = "1er étage",
+        priceBreakdown = PriceBreakdown(labor = 70, parts = 25),
         isFixed = true
     )
 )

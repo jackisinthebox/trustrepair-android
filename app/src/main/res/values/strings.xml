@@ -167,15 +167,21 @@
     <string name="quote_builder_preview">Aperçu</string>
     <string name="quote_builder_submit">Envoyer le devis</string>
     
-    <!-- Active Jobs -->
+    <!-- Active Jobs (Pipeline) -->
     <string name="active_jobs_title">Mes travaux</string>
     <string name="active_jobs_filter_all">Tous</string>
-    <string name="active_jobs_filter_today">Aujourd\'hui</string>
-    <string name="active_jobs_filter_week">Cette semaine</string>
-    <string name="active_jobs_filter_upcoming">À venir</string>
-    <string name="active_jobs_empty">Aucun travail en cours</string>
+    <string name="active_jobs_filter_new">Nouveaux</string>
+    <string name="active_jobs_filter_quotes">Devis</string>
+    <string name="active_jobs_filter_scheduled">Planifiés</string>
+    <string name="active_jobs_filter_active">En cours</string>
+    <string name="active_jobs_filter_completed">Terminés</string>
+    <string name="active_jobs_empty">Aucun travail</string>
+    <string name="active_jobs_empty_filter">Aucun travail dans cette catégorie</string>
     
-    <!-- Job Status -->
+    <!-- Job Status (Pipeline) -->
+    <string name="job_status_pending_quote">Nouveau</string>
+    <string name="job_status_quote_sent">Devis envoyé</string>
+    <string name="job_status_quote_accepted">Accepté</string>
     <string name="job_status_confirmed">Confirmé</string>
     <string name="job_status_en_route">En route</string>
     <string name="job_status_in_progress">En cours</string>
@@ -187,10 +193,14 @@
     <string name="job_detail_job_info">Travail</string>
     <string name="job_detail_access">Accès</string>
     <string name="job_detail_price">Prix</string>
+    <string name="job_detail_action_send_quote">Envoyer un devis</string>
+    <string name="job_detail_action_confirm">Confirmer le RDV</string>
     <string name="job_detail_action_en_route">Je suis en route</string>
     <string name="job_detail_action_arrived">Je suis arrivé</string>
     <string name="job_detail_action_complete">Travail terminé</string>
     <string name="job_detail_open_maps">Ouvrir dans Maps</string>
+    <string name="job_detail_quote_pending">En attente de réponse</string>
+    <string name="job_detail_no_quote_yet">Pas encore de devis</string>
     
     <!-- Earnings -->
     <string name="earnings_title">Mes revenus</string>

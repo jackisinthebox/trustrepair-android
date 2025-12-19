@@ -1,7 +1,6 @@
 package com.trustrepair.app.ui.screens.provider
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -31,12 +30,14 @@ import com.trustrepair.app.data.JobStatus
 import com.trustrepair.app.data.demoActiveJobs
 import com.trustrepair.app.ui.theme.*
 
-// Filter options
-private enum class JobFilter(val labelResId: Int) {
-    ALL(R.string.active_jobs_filter_all),
-    TODAY(R.string.active_jobs_filter_today),
-    THIS_WEEK(R.string.active_jobs_filter_week),
-    UPCOMING(R.string.active_jobs_filter_upcoming)
+// Pipeline filter options
+private enum class PipelineFilter(val labelResId: Int, val statuses: List<JobStatus>) {
+    ALL(R.string.active_jobs_filter_all, JobStatus.entries),
+    NEW(R.string.active_jobs_filter_new, listOf(JobStatus.PENDING_QUOTE)),
+    QUOTES(R.string.active_jobs_filter_quotes, listOf(JobStatus.QUOTE_SENT, JobStatus.QUOTE_ACCEPTED)),
+    SCHEDULED(R.string.active_jobs_filter_scheduled, listOf(JobStatus.CONFIRMED)),
+    ACTIVE(R.string.active_jobs_filter_active, listOf(JobStatus.EN_ROUTE, JobStatus.IN_PROGRESS)),
+    COMPLETED(R.string.active_jobs_filter_completed, listOf(JobStatus.COMPLETED))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,14 +46,16 @@ fun ActiveJobsScreen(
     onBack: () -> Unit,
     onJobClick: (String) -> Unit
 ) {
-    var selectedFilter by remember { mutableStateOf(JobFilter.ALL) }
+    var selectedFilter by remember { mutableStateOf(PipelineFilter.ALL) }
 
-    // Filter jobs based on selection (demo: just show all for now)
-    val filteredJobs = when (selectedFilter) {
-        JobFilter.ALL -> demoActiveJobs
-        JobFilter.TODAY -> demoActiveJobs.filter { it.date.contains("Aujourd'hui", ignoreCase = true) }
-        JobFilter.THIS_WEEK -> demoActiveJobs // In real app, filter by date
-        JobFilter.UPCOMING -> demoActiveJobs.filter { it.status != JobStatus.COMPLETED }
+    // Filter jobs based on pipeline stage
+    val filteredJobs = demoActiveJobs.filter { job ->
+        job.status in selectedFilter.statuses
+    }
+
+    // Count jobs per filter for badges
+    val jobCounts = PipelineFilter.entries.associateWith { filter ->
+        demoActiveJobs.count { it.status in filter.statuses }
     }
 
     Scaffold(
@@ -87,9 +90,10 @@ fun ActiveJobsScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Filter chips row
-            FilterChipsRow(
+            // Pipeline filter chips row
+            PipelineFilterRow(
                 selectedFilter = selectedFilter,
+                jobCounts = jobCounts,
                 onFilterSelected = { selectedFilter = it }
             )
 
@@ -103,7 +107,7 @@ fun ActiveJobsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(filteredJobs, key = { it.id }) { job ->
-                        ActiveJobCard(
+                        PipelineJobCard(
                             job = job,
                             onClick = { onJobClick(job.id) }
                         )
@@ -115,9 +119,10 @@ fun ActiveJobsScreen(
 }
 
 @Composable
-private fun FilterChipsRow(
-    selectedFilter: JobFilter,
-    onFilterSelected: (JobFilter) -> Unit
+private fun PipelineFilterRow(
+    selectedFilter: PipelineFilter,
+    jobCounts: Map<PipelineFilter, Int>,
+    onFilterSelected: (PipelineFilter) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -127,9 +132,10 @@ private fun FilterChipsRow(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        JobFilter.entries.forEach { filter ->
-            FilterChip(
+        PipelineFilter.entries.forEach { filter ->
+            PipelineFilterChip(
                 filter = filter,
+                count = jobCounts[filter] ?: 0,
                 isSelected = selectedFilter == filter,
                 onClick = { onFilterSelected(filter) }
             )
@@ -138,8 +144,9 @@ private fun FilterChipsRow(
 }
 
 @Composable
-private fun FilterChip(
-    filter: JobFilter,
+private fun PipelineFilterChip(
+    filter: PipelineFilter,
+    count: Int,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -149,21 +156,47 @@ private fun FilterChip(
         color = if (isSelected) ProviderPurple else Color.White,
         border = if (isSelected) null else androidx.compose.foundation.BorderStroke(1.dp, Gray300)
     ) {
-        Text(
-            text = stringResource(filter.labelResId),
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            fontSize = 14.sp,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (isSelected) Color.White else Gray700
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = stringResource(filter.labelResId),
+                fontSize = 14.sp,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (isSelected) Color.White else Gray700
+            )
+            // Show count badge (except for ALL)
+            if (filter != PipelineFilter.ALL && count > 0) {
+                Surface(
+                    shape = CircleShape,
+                    color = if (isSelected) Color.White.copy(alpha = 0.2f) else Gray200
+                ) {
+                    Text(
+                        text = count.toString(),
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isSelected) Color.White else Gray600
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun ActiveJobCard(
+private fun PipelineJobCard(
     job: ActiveJob,
     onClick: () -> Unit
 ) {
+    val isEarlyStage = job.status in listOf(
+        JobStatus.PENDING_QUOTE,
+        JobStatus.QUOTE_SENT,
+        JobStatus.QUOTE_ACCEPTED
+    )
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -195,7 +228,7 @@ private fun ActiveJobCard(
                             .clip(CircleShape)
                             .background(
                                 Brush.linearGradient(
-                                    colors = listOf(ProviderPurple, ProviderPurple.copy(alpha = 0.7f))
+                                    colors = listOf(ProviderPurple, ProviderPurpleDark)
                                 )
                             ),
                         contentAlignment = Alignment.Center
@@ -239,22 +272,70 @@ private fun ActiveJobCard(
                 lineHeight = 20.sp
             )
 
-            // Date and time row
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.CalendarToday,
-                    contentDescription = null,
-                    tint = Gray400,
-                    modifier = Modifier.size(16.dp)
-                )
-                Text(
-                    text = "${job.date}, ${job.timeSlot}",
-                    fontSize = 13.sp,
-                    color = Gray600
-                )
+            // Date/time OR urgency info depending on stage
+            if (isEarlyStage) {
+                // For early stages: show urgency and time info
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (job.urgency.isNotEmpty()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Schedule,
+                                contentDescription = null,
+                                tint = WarningAmberDark,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = job.urgency,
+                                fontSize = 13.sp,
+                                color = WarningAmberDark,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                    if (job.expiresIn.isNotEmpty() && job.status == JobStatus.PENDING_QUOTE) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Timer,
+                                contentDescription = null,
+                                tint = ErrorRed,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = "Expire dans ${job.expiresIn}",
+                                fontSize = 13.sp,
+                                color = ErrorRed,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            } else if (job.date.isNotEmpty()) {
+                // For scheduled jobs: show date and time
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.CalendarToday,
+                        contentDescription = null,
+                        tint = Gray400,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = if (job.timeSlot.isNotEmpty()) "${job.date}, ${job.timeSlot}" else job.date,
+                        fontSize = 13.sp,
+                        color = Gray600
+                    )
+                }
             }
 
             // Address row
@@ -276,32 +357,75 @@ private fun ActiveJobCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+
+            // Price row (if quote exists)
+            job.priceBreakdown?.let { breakdown ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Euro,
+                        contentDescription = null,
+                        tint = SuccessGreenDark,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = "${breakdown.total} €",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = SuccessGreenDark
+                    )
+                    if (job.isFixed == true) {
+                        Text(
+                            text = "(prix fixe)",
+                            fontSize = 12.sp,
+                            color = Gray500
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun StatusBadge(status: JobStatus) {
-    val (backgroundColor, textColor, text) = when (status) {
+fun StatusBadge(status: JobStatus) {
+    val (backgroundColor, textColor, textResId) = when (status) {
+        JobStatus.PENDING_QUOTE -> Triple(
+            ProviderPurpleLight,
+            ProviderPurple,
+            R.string.job_status_pending_quote
+        )
+        JobStatus.QUOTE_SENT -> Triple(
+            TrustBlueLight,
+            TrustBlueDark,
+            R.string.job_status_quote_sent
+        )
+        JobStatus.QUOTE_ACCEPTED -> Triple(
+            WarningAmberLight,
+            WarningAmberDark,
+            R.string.job_status_quote_accepted
+        )
         JobStatus.CONFIRMED -> Triple(
             SuccessGreenLight,
             SuccessGreenDark,
-            stringResource(R.string.job_status_confirmed)
+            R.string.job_status_confirmed
         )
         JobStatus.EN_ROUTE -> Triple(
             TrustBlueLight,
             TrustBlueDark,
-            stringResource(R.string.job_status_en_route)
+            R.string.job_status_en_route
         )
         JobStatus.IN_PROGRESS -> Triple(
             WarningAmberLight,
             WarningAmberDark,
-            stringResource(R.string.job_status_in_progress)
+            R.string.job_status_in_progress
         )
         JobStatus.COMPLETED -> Triple(
             Gray200,
             Gray700,
-            stringResource(R.string.job_status_completed)
+            R.string.job_status_completed
         )
     }
 
@@ -310,7 +434,7 @@ private fun StatusBadge(status: JobStatus) {
         color = backgroundColor
     ) {
         Text(
-            text = text,
+            text = stringResource(textResId),
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
@@ -329,7 +453,6 @@ private fun EmptyState() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Illustration placeholder
             Box(
                 modifier = Modifier
                     .size(80.dp)
@@ -346,7 +469,7 @@ private fun EmptyState() {
             }
 
             Text(
-                text = stringResource(R.string.active_jobs_empty),
+                text = stringResource(R.string.active_jobs_empty_filter),
                 fontSize = 16.sp,
                 color = Gray500,
                 fontWeight = FontWeight.Medium
@@ -368,10 +491,18 @@ private fun ActiveJobsScreenPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun FilterChipsRowPreview() {
+private fun PipelineFilterRowPreview() {
     TrustRepairTheme {
-        FilterChipsRow(
-            selectedFilter = JobFilter.ALL,
+        PipelineFilterRow(
+            selectedFilter = PipelineFilter.ALL,
+            jobCounts = mapOf(
+                PipelineFilter.ALL to 7,
+                PipelineFilter.NEW to 2,
+                PipelineFilter.QUOTES to 2,
+                PipelineFilter.SCHEDULED to 1,
+                PipelineFilter.ACTIVE to 1,
+                PipelineFilter.COMPLETED to 1
+            ),
             onFilterSelected = {}
         )
     }
@@ -379,10 +510,10 @@ private fun FilterChipsRowPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun ActiveJobCardPreview() {
+private fun PipelineJobCardPreview() {
     TrustRepairTheme {
         Box(modifier = Modifier.padding(16.dp)) {
-            ActiveJobCard(
+            PipelineJobCard(
                 job = demoActiveJobs[0],
                 onClick = {}
             )
@@ -392,8 +523,15 @@ private fun ActiveJobCardPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun EmptyStatePreview() {
+private fun StatusBadgePreview() {
     TrustRepairTheme {
-        EmptyState()
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            StatusBadge(status = JobStatus.PENDING_QUOTE)
+            StatusBadge(status = JobStatus.QUOTE_SENT)
+            StatusBadge(status = JobStatus.CONFIRMED)
+        }
     }
 }
