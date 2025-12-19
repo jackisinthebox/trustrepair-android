@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trustrepair.app.R
 import com.trustrepair.app.data.*
+import com.trustrepair.app.ui.components.debouncedClickableWithRipple
 import com.trustrepair.app.ui.theme.*
 
 // Bottom navigation items
@@ -505,7 +506,7 @@ private fun DashboardJobCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .clickable(onClick = onClick),
+            .debouncedClickableWithRipple(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)

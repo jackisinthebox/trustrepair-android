@@ -489,7 +489,7 @@ private fun JobInfoCard(
 
             // Urgency and availability (for early-stage jobs)
             if (urgency.isNotEmpty() || availability.isNotEmpty()) {
-                HorizontalDivider(color = Gray100, thickness = 1.dp)
+                Divider(color = Gray100, thickness = 1.dp)
 
                 if (urgency.isNotEmpty()) {
                     Row(
@@ -641,7 +641,7 @@ private fun AccessCard(
                 )
             }
 
-            HorizontalDivider(color = Gray100, thickness = 1.dp)
+            Divider(color = Gray100, thickness = 1.dp)
 
             if (accessCode.isNotBlank()) {
                 Surface(
@@ -753,7 +753,7 @@ private fun PriceCard(
                 Text(text = "$partsPrice €", fontSize = 14.sp, color = Gray700)
             }
 
-            HorizontalDivider(color = Gray200, thickness = 1.dp)
+            Divider(color = Gray200, thickness = 1.dp)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

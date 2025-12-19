@@ -28,6 +28,7 @@ import com.trustrepair.app.R
 import com.trustrepair.app.data.ActiveJob
 import com.trustrepair.app.data.JobStatus
 import com.trustrepair.app.data.demoActiveJobs
+import com.trustrepair.app.ui.components.debouncedClickableWithRipple
 import com.trustrepair.app.ui.theme.*
 
 // Pipeline filter options
@@ -200,7 +201,7 @@ private fun PipelineJobCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .debouncedClickableWithRipple(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         color = Color.White,
         border = androidx.compose.foundation.BorderStroke(1.dp, Gray200)
