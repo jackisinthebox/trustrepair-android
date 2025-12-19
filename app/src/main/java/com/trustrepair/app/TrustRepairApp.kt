@@ -179,6 +179,9 @@ fun TrustRepairApp() {
             JobDetailScreen(
                 jobId = jobId,
                 onBack = { navController.popBackStack() },
+                onSendQuote = { id ->
+                    navController.navigate(Screen.QuoteBuilder.createRoute(id))
+                },
                 onComplete = { navController.popBackStack() }
             )
         }
