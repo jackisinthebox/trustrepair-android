@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TrustRepair</string>
+    
+    <!-- Welcome Screen -->
+    <string name="welcome_tagline">La confiance au service de votre maison</string>
+    <string name="welcome_client_button">Je cherche un artisan</string>
+    <string name="welcome_client_subtitle">Trouvez un professionnel de confiance</string>
+    <string name="welcome_provider_button">Je suis artisan</string>
+    <string name="welcome_provider_subtitle">Accédez à votre espace professionnel</string>
+    <string name="welcome_how_it_works">Comment ça marche ?</string>
+    <string name="welcome_feature_1">Artisans vérifiés et assurés</string>
+    <string name="welcome_feature_2">Paiement sécurisé en séquestre</string>
+    <string name="welcome_feature_3">Satisfait ou remboursé</string>
+    <string name="welcome_cta">Décrire mon problème</string>
+    
+    <!-- Chat -->
+    <string name="chat_online">En ligne</string>
+    <string name="chat_placeholder">Décrivez votre problème…</string>
+    <string name="chat_greeting">Bonjour ! 👋 Je suis là pour vous aider à trouver un artisan de confiance.\n\nQuel problème rencontrez-vous ?</string>
+    
+    <!-- Quick Replies -->
+    <string name="quick_plomberie">🔧 Plomberie</string>
+    <string name="quick_electricite">⚡ Électricité</string>
+    <string name="quick_serrurerie">🔑 Serrurerie</string>
+    <string name="quick_autre">Autre</string>
+    <string name="quick_photo">📸 Prendre une photo</string>
+    <string name="quick_no_photo">Pas de photo</string>
+    <string name="quick_verify">📱 Vérifier mon numéro</string>
+    
+    <!-- Verify Screen -->
+    <string name="verify_title">Vérifiez votre numéro</string>
+    <string name="verify_subtitle">Un code à 6 chiffres a été envoyé au</string>
+    <string name="verify_resend_question">Vous n\'avez pas reçu de code ?</string>
+    <string name="verify_resend">Renvoyer le code</string>
+    <string name="verify_button">Vérifier</string>
+    
+    <!-- Quotes Screen -->
+    <string name="quotes_title">Comparer les devis</string>
+    <string name="quotes_subtitle">%d artisans disponibles</string>
+    <string name="quotes_price_gap">Écart de prix de 20%% — comparez les prestations incluses</string>
+    <string name="quote_badge_best">Meilleur rapport qualité-prix</string>
+    <string name="quote_badge_fast">Disponible aujourd\'hui</string>
+    <string name="quote_reviews">%d avis</string>
+    <string name="quote_fixed_price">prix fixe</string>
+    <string name="quote_estimated">~ estimé</string>
+    <string name="quote_experience">%d ans d\'exp.</string>
+    <string name="quote_distance">%.1f km</string>
+    <string name="quote_details">Détails</string>
+    <string name="quote_choose">Choisir</string>
+    
+    <!-- Payment Screen -->
+    <string name="payment_title">Récapitulatif</string>
+    <string name="payment_step">Étape %d sur %d</string>
+    <string name="payment_secure">Paiement sécurisé par Mangopay</string>
+    <string name="payment_labor">Main d\'œuvre</string>
+    <string name="payment_parts">Pièces et fournitures</string>
+    <string name="payment_total">Total TTC</string>
+    <string name="payment_guarantee_escrow_title">Paiement en séquestre</string>
+    <string name="payment_guarantee_escrow_desc">L\'argent est bloqué jusqu\'à votre confirmation de satisfaction</string>
+    <string name="payment_guarantee_refund_title">Remboursement garanti</string>
+    <string name="payment_guarantee_refund_desc">Si le travail n\'est pas conforme</string>
+    <string name="payment_guarantee_data_title">Données protégées</string>
+    <string name="payment_guarantee_data_desc">Vos informations bancaires ne sont jamais stockées chez nous</string>
+    <string name="payment_cta">Payer %d € de manière sécurisée</string>
+    <string name="payment_escrow_note">L\'argent reste bloqué jusqu\'à votre confirmation</string>
+    
+    <!-- Processing Screen -->
+    <string name="processing_title">Traitement en cours…</string>
+    <string name="processing_subtitle">Veuillez patienter pendant que nous vérifions votre paiement.</string>
+    <string name="processing_step_card">Carte vérifiée</string>
+    <string name="processing_step_auth">Autorisation bancaire</string>
+    <string name="processing_step_confirm">Confirmation</string>
+    
+    <!-- Success Screen -->
+    <string name="success_title">Paiement confirmé !</string>
+    <string name="success_subtitle">Votre réservation est enregistrée</string>
+    <string name="success_card_title">Réservation confirmée</string>
+    <string name="success_card_desc">%s a été prévenu et va confirmer rapidement. Vous recevrez un rappel la veille du rendez-vous.</string>
+    <string name="success_next_steps">Prochaines étapes</string>
+    <string name="success_step_1_title">Confirmation artisan</string>
+    <string name="success_step_1_desc">%s confirme sa venue sous 2h</string>
+    <string name="success_step_2_title">Rappel J-1</string>
+    <string name="success_step_2_desc">SMS de rappel la veille du RDV</string>
+    <string name="success_step_3_title">Intervention</string>
+    <string name="success_step_3_desc">Arrivée entre %s</string>
+    <string name="success_step_4_title">Validation finale</string>
+    <string name="success_step_4_desc">Vous confirmez votre satisfaction</string>
+    <string name="success_escrow_title">Votre argent est protégé</string>
+    <string name="success_escrow_desc">Le paiement ne sera libéré à l\'artisan qu\'après votre confirmation de satisfaction.</string>
+    <string name="success_cta">Suivre ma réservation</string>
+    
+    <!-- Tracking Screen -->
+    <string name="tracking_title">Suivi de réservation</string>
+    <string name="tracking_status">Réservation confirmée</string>
+    <string name="tracking_message">Message</string>
+    <string name="tracking_call">Appeler</string>
+    <string name="tracking_history">Historique</string>
+    <string name="tracking_cancel">Annuler la réservation</string>
+    
+    <!-- Rating Screen -->
+    <string name="rating_title">Évaluation</string>
+    <string name="rating_question">Comment s\'est passée l\'intervention ?</string>
+    <string name="rating_subtitle">Votre avis aide les autres clients</string>
+    <string name="rating_comment_label">Commentaire (optionnel)</string>
+    <string name="rating_comment_placeholder">Partagez votre expérience avec %s…</string>
+    <string name="rating_submit">Envoyer mon avis</string>
+    <string name="rating_1">Très insatisfait 😞</string>
+    <string name="rating_2">Insatisfait 😕</string>
+    <string name="rating_3">Correct 😐</string>
+    <string name="rating_4">Satisfait 🙂</string>
+    <string name="rating_5">Très satisfait 😃</string>
+    
+    <!-- ==================== PROVIDER STRINGS ==================== -->
+    
+    <!-- Provider Login -->
+    <string name="provider_login_title">Espace Artisan</string>
+    <string name="provider_login_subtitle">Connectez-vous pour gérer vos demandes</string>
+    <string name="provider_email">Email</string>
+    <string name="provider_password">Mot de passe</string>
+    <string name="provider_forgot_password">Mot de passe oublié ?</string>
+    <string name="provider_login_button">Se connecter</string>
+    <string name="provider_no_account">Pas encore de compte ?</string>
+    <string name="provider_create_account">Créer un compte</string>
+    
+    <!-- Provider Dashboard -->
+    <string name="provider_greeting">Bonjour, %s 👋</string>
+    <string name="provider_stats_month">Ce mois</string>
+    <string name="provider_stats_pending">En attente</string>
+    <string name="provider_stats_rating">Note</string>
+    <string name="provider_new_requests">Nouvelles demandes</string>
+    <string name="provider_active_jobs">Travaux en cours</string>
+    <string name="provider_time_ago">Il y a %s</string>
+    <string name="provider_expires_in">Expire dans %s</string>
+    
+    <!-- Provider Navigation -->
+    <string name="provider_nav_requests">Demandes</string>
+    <string name="provider_nav_jobs">Travaux</string>
+    <string name="provider_nav_earnings">Revenus</string>
+    <string name="provider_nav_profile">Profil</string>
+    
+    <!-- Job Request -->
+    <string name="job_request_title">Nouvelle demande</string>
+    <string name="job_request_member_since">Membre depuis %s</string>
+    <string name="job_request_verified">Vérifié</string>
+    <string name="job_request_urgency">Urgence</string>
+    <string name="job_request_availability">Disponibilité</string>
+    <string name="job_request_access">Informations d\'accès</string>
+    <string name="job_request_decline">Refuser</string>
+    <string name="job_request_send_quote">Envoyer un devis</string>
+    
+    <!-- Quote Builder -->
+    <string name="quote_builder_title">Créer un devis</string>
+    <string name="quote_builder_labor">Main d\'œuvre</string>
+    <string name="quote_builder_add_line">+ Ajouter une ligne</string>
+    <string name="quote_builder_quick_add">Ajout rapide</string>
+    <string name="quote_builder_travel">Déplacement</string>
+    <string name="quote_builder_parts">Pièces</string>
+    <string name="quote_builder_diagnostic">Diagnostic</string>
+    <string name="quote_builder_urgent">Urgence</string>
+    <string name="quote_builder_date">Date d\'intervention</string>
+    <string name="quote_builder_time">Créneau horaire</string>
+    <string name="quote_builder_fixed">Prix fixe</string>
+    <string name="quote_builder_estimate">Estimation</string>
+    <string name="quote_builder_total">Total</string>
+    <string name="quote_builder_message">Message au client (optionnel)</string>
+    <string name="quote_builder_preview">Aperçu</string>
+    <string name="quote_builder_submit">Envoyer le devis</string>
+    
+    <!-- Active Jobs -->
+    <string name="active_jobs_title">Mes travaux</string>
+    <string name="active_jobs_filter_all">Tous</string>
+    <string name="active_jobs_filter_today">Aujourd\'hui</string>
+    <string name="active_jobs_filter_week">Cette semaine</string>
+    <string name="active_jobs_filter_upcoming">À venir</string>
+    <string name="active_jobs_empty">Aucun travail en cours</string>
+    
+    <!-- Job Status -->
+    <string name="job_status_confirmed">Confirmé</string>
+    <string name="job_status_en_route">En route</string>
+    <string name="job_status_in_progress">En cours</string>
+    <string name="job_status_completed">Terminé</string>
+    
+    <!-- Job Detail -->
+    <string name="job_detail_title">Détail du travail</string>
+    <string name="job_detail_client">Client</string>
+    <string name="job_detail_job_info">Travail</string>
+    <string name="job_detail_access">Accès</string>
+    <string name="job_detail_price">Prix</string>
+    <string name="job_detail_action_en_route">Je suis en route</string>
+    <string name="job_detail_action_arrived">Je suis arrivé</string>
+    <string name="job_detail_action_complete">Travail terminé</string>
+    <string name="job_detail_open_maps">Ouvrir dans Maps</string>
+    
+    <!-- Earnings -->
+    <string name="earnings_title">Mes revenus</string>
+    <string name="earnings_available">Solde disponible</string>
+    <string name="earnings_withdraw">Retirer</string>
+    <string name="earnings_pending">En attente de validation</string>
+    <string name="earnings_pending_info">Libéré après confirmation client</string>
+    <string name="earnings_period_week">Cette semaine</string>
+    <string name="earnings_period_month">Ce mois</string>
+    <string name="earnings_period_year">Cette année</string>
+    <string name="earnings_jobs_completed">Travaux terminés</string>
+    <string name="earnings_total">Revenus</string>
+    <string name="earnings_avg_rating">Note moyenne</string>
+    <string name="earnings_history">Historique</string>
+    <string name="earnings_status_paid">Payé</string>
+    <string name="earnings_status_pending">En attente</string>
+    
+    <!-- Provider Profile -->
+    <string name="profile_title">Mon profil</string>
+    <string name="profile_view_public">Voir mon profil public</string>
+    <string name="profile_personal_info">Informations personnelles</string>
+    <string name="profile_documents">Documents et certifications</string>
+    <string name="profile_zone">Zone d\'intervention</string>
+    <string name="profile_availability">Disponibilités</string>
+    <string name="profile_notifications">Paramètres de notification</string>
+    <string name="profile_help">Aide et support</string>
+    <string name="profile_logout">Se déconnecter</string>
+    <string name="profile_version">Version %s</string>
+    
+    <!-- Common -->
+    <string name="back">Retour</string>
+    <string name="close">Fermer</string>
+    <string name="today">Aujourd\'hui</string>
+    <string name="morning">Matin</string>
+    <string name="afternoon">Après-midi</string>
+    <string name="evening">Soir</string>
+</resources>
