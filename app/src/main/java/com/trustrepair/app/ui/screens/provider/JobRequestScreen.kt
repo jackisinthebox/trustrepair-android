@@ -1,5 +1,6 @@
 package com.trustrepair.app.ui.screens.provider
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -12,11 +13,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -29,6 +32,33 @@ import com.trustrepair.app.data.JobRequest
 import com.trustrepair.app.data.demoJobRequests
 import com.trustrepair.app.ui.components.JobTypeIcon
 import com.trustrepair.app.ui.theme.*
+
+/**
+ * Parses the expiresIn string to extract minutes.
+ * Supports formats like "2h", "30 min", "1h30", "25 min", "1h15"
+ */
+private fun parseExpiresInMinutes(expiresIn: String): Int {
+    val cleaned = expiresIn.lowercase().trim()
+
+    // Try to match "Xh" or "XhY" or "XhYm" patterns
+    val hourMinuteRegex = Regex("""(\d+)h\s*(\d*)""")
+    val hourMinuteMatch = hourMinuteRegex.find(cleaned)
+    if (hourMinuteMatch != null) {
+        val hours = hourMinuteMatch.groupValues[1].toIntOrNull() ?: 0
+        val minutes = hourMinuteMatch.groupValues[2].toIntOrNull() ?: 0
+        return hours * 60 + minutes
+    }
+
+    // Try to match "X min" or "Xmin" patterns
+    val minuteRegex = Regex("""(\d+)\s*min""")
+    val minuteMatch = minuteRegex.find(cleaned)
+    if (minuteMatch != null) {
+        return minuteMatch.groupValues[1].toIntOrNull() ?: Int.MAX_VALUE
+    }
+
+    // Default to a large number if parsing fails
+    return Int.MAX_VALUE
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,8 +91,37 @@ fun JobRequestScreen(
                     }
                 },
                 actions = {
-                    // Timer badge
+                    // Timer badge with pulsing animation when urgent
+                    val minutesRemaining = parseExpiresInMinutes(jobRequest.expiresIn)
+                    val isUrgent = minutesRemaining < 30
+
+                    // Pulsing animation for urgent badges
+                    val infiniteTransition = rememberInfiniteTransition(label = "urgency_pulse")
+                    val scale by infiniteTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = if (isUrgent) 1.15f else 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 600, easing = LinearEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "scale"
+                    )
+                    val alpha by infiniteTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = if (isUrgent) 0.7f else 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 600, easing = LinearEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "alpha"
+                    )
+
                     Surface(
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            this.alpha = alpha
+                        },
                         shape = RoundedCornerShape(8.dp),
                         color = WarningAmberLight
                     ) {

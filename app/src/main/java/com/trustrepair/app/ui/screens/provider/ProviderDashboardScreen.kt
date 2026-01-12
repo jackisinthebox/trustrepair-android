@@ -1,5 +1,6 @@
 package com.trustrepair.app.ui.screens.provider
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +35,33 @@ import com.trustrepair.app.data.*
 import com.trustrepair.app.ui.components.JobTypeIcon
 import com.trustrepair.app.ui.components.debouncedClickableWithRipple
 import com.trustrepair.app.ui.theme.*
+
+/**
+ * Parses the expiresIn string to extract minutes.
+ * Supports formats like "2h", "30 min", "1h30", "25 min", "1h15"
+ */
+private fun parseExpiresInMinutes(expiresIn: String): Int {
+    val cleaned = expiresIn.lowercase().trim()
+
+    // Try to match "Xh" or "XhY" or "XhYm" patterns
+    val hourMinuteRegex = Regex("""(\d+)h\s*(\d*)""")
+    val hourMinuteMatch = hourMinuteRegex.find(cleaned)
+    if (hourMinuteMatch != null) {
+        val hours = hourMinuteMatch.groupValues[1].toIntOrNull() ?: 0
+        val minutes = hourMinuteMatch.groupValues[2].toIntOrNull() ?: 0
+        return hours * 60 + minutes
+    }
+
+    // Try to match "X min" or "Xmin" patterns
+    val minuteRegex = Regex("""(\d+)\s*min""")
+    val minuteMatch = minuteRegex.find(cleaned)
+    if (minuteMatch != null) {
+        return minuteMatch.groupValues[1].toIntOrNull() ?: Int.MAX_VALUE
+    }
+
+    // Default to a large number if parsing fails
+    return Int.MAX_VALUE
+}
 
 // Bottom navigation items
 private enum class ProviderNavItem(
@@ -849,18 +878,47 @@ private fun DashboardJobCard(
                     }
                 }
 
-                // Expires badge for pending quotes
+                // Expires badge for pending quotes with pulsing animation when urgent
                 if (job.status == JobStatus.PENDING_QUOTE && job.expiresIn.isNotEmpty()) {
+                    val minutesRemaining = parseExpiresInMinutes(job.expiresIn)
+                    val isUrgent = minutesRemaining < 30
+
+                    // Pulsing animation for urgent badges
+                    val infiniteTransition = rememberInfiniteTransition(label = "urgency_pulse")
+                    val scale by infiniteTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = if (isUrgent) 1.15f else 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 600, easing = LinearEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "scale"
+                    )
+                    val alpha by infiniteTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = if (isUrgent) 0.7f else 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 600, easing = LinearEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "alpha"
+                    )
+
                     Surface(
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            this.alpha = alpha
+                        },
                         shape = RoundedCornerShape(6.dp),
-                        color = ErrorRedLight
+                        color = if (isUrgent) WarningAmberLight else ErrorRedLight
                     ) {
                         Text(
                             text = "Expire dans ${job.expiresIn}",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
-                            color = ErrorRed
+                            color = if (isUrgent) WarningAmberDark else ErrorRed
                         )
                     }
                 }
