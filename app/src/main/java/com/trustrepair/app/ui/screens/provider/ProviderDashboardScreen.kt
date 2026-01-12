@@ -59,6 +59,13 @@ private val pipelineStages = listOf(
     PipelineStage(JobStatus.IN_PROGRESS, R.string.job_status_in_progress, WarningAmber, WarningAmberLight)
 )
 
+// Availability status options
+private enum class AvailabilityStatus {
+    AVAILABLE,
+    UNAVAILABLE_TODAY,
+    UNAVAILABLE_UNTIL
+}
+
 @Composable
 fun ProviderDashboardScreen(
     onJobRequestClick: (String) -> Unit,
@@ -80,6 +87,10 @@ fun ProviderDashboardScreen(
     val activeJobs = allJobs.filter { it.status != JobStatus.COMPLETED }
 
     var selectedNavItem by remember { mutableStateOf(ProviderNavItem.REQUESTS) }
+
+    // Availability state
+    var availabilityStatus by remember { mutableStateOf(AvailabilityStatus.AVAILABLE) }
+    var showAvailabilitySheet by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = Gray50,
@@ -109,6 +120,8 @@ fun ProviderDashboardScreen(
                 firstName = provider.firstName,
                 initials = "${provider.firstName.first()}${provider.lastName.first()}",
                 avatarColor = provider.avatarColor,
+                availabilityStatus = availabilityStatus,
+                onAvailabilityClick = { showAvailabilitySheet = true },
                 onNotificationClick = onNotificationClick
             )
 
@@ -154,6 +167,18 @@ fun ProviderDashboardScreen(
             // Bottom spacing
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+
+    // Availability bottom sheet
+    if (showAvailabilitySheet) {
+        AvailabilityBottomSheet(
+            currentStatus = availabilityStatus,
+            onStatusSelected = { status ->
+                availabilityStatus = status
+                showAvailabilitySheet = false
+            },
+            onDismiss = { showAvailabilitySheet = false }
+        )
     }
 }
 
@@ -286,72 +311,257 @@ private fun DashboardHeader(
     firstName: String,
     initials: String,
     avatarColor: Color,
+    availabilityStatus: AvailabilityStatus,
+    onAvailabilityClick: () -> Unit,
     onNotificationClick: () -> Unit
 ) {
+    val isAvailable = availabilityStatus == AvailabilityStatus.AVAILABLE
+
     Surface(
         color = Color.White,
         shadowElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Avatar
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(avatarColor, avatarColor.copy(alpha = 0.7f))
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = initials,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+
+                    // Greeting
+                    Text(
+                        text = stringResource(R.string.provider_greeting, firstName),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Gray900
+                    )
+                }
+
+                // Right side: Availability chip + Notification bell
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Availability chip
+                    FilterChip(
+                        selected = isAvailable,
+                        onClick = onAvailabilityClick,
+                        label = {
+                            Text(
+                                text = stringResource(
+                                    if (isAvailable) R.string.availability_available
+                                    else R.string.availability_unavailable
+                                ),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = if (isAvailable) Icons.Filled.Check else Icons.Filled.Block,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = Gray100,
+                            labelColor = Gray600,
+                            iconColor = Gray500,
+                            selectedContainerColor = SuccessGreenLight,
+                            selectedLabelColor = SuccessGreenDark,
+                            selectedLeadingIconColor = SuccessGreen
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            borderColor = Color.Transparent,
+                            selectedBorderColor = SuccessGreen
+                        )
+                    )
+
+                    // Notification bell
+                    IconButton(onClick = onNotificationClick) {
+                        BadgedBox(
+                            badge = {
+                                Badge(
+                                    containerColor = ErrorRed,
+                                    contentColor = Color.White
+                                ) {
+                                    Text("2")
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Notifications,
+                                contentDescription = "Notifications",
+                                tint = Gray700,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AvailabilityBottomSheet(
+    currentStatus: AvailabilityStatus,
+    onStatusSelected: (AvailabilityStatus) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color.White,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.availability_manage),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Gray900,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            // Available now option
+            AvailabilityOption(
+                title = stringResource(R.string.availability_now),
+                isSelected = currentStatus == AvailabilityStatus.AVAILABLE,
+                color = SuccessGreen,
+                icon = Icons.Filled.CheckCircle,
+                onClick = { onStatusSelected(AvailabilityStatus.AVAILABLE) }
+            )
+
+            // Unavailable today option
+            AvailabilityOption(
+                title = stringResource(R.string.availability_today),
+                isSelected = currentStatus == AvailabilityStatus.UNAVAILABLE_TODAY,
+                color = WarningAmber,
+                icon = Icons.Filled.PauseCircle,
+                onClick = { onStatusSelected(AvailabilityStatus.UNAVAILABLE_TODAY) }
+            )
+
+            // Unavailable until option
+            AvailabilityOption(
+                title = stringResource(R.string.availability_until),
+                isSelected = currentStatus == AvailabilityStatus.UNAVAILABLE_UNTIL,
+                color = Gray500,
+                icon = Icons.Filled.EventBusy,
+                onClick = { onStatusSelected(AvailabilityStatus.UNAVAILABLE_UNTIL) }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Manage schedule link
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Schedule,
+                    contentDescription = null,
+                    tint = ProviderPurple,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.availability_manage),
+                    color = ProviderPurple,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AvailabilityOption(
+    title: String,
+    isSelected: Boolean,
+    color: Color,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) color.copy(alpha = 0.1f) else Color.White,
+        border = androidx.compose.foundation.BorderStroke(
+            width = if (isSelected) 2.dp else 1.dp,
+            color = if (isSelected) color else Gray200
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Avatar
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(avatarColor, avatarColor.copy(alpha = 0.7f))
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = initials,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isSelected) color else Gray400,
+                modifier = Modifier.size(24.dp)
+            )
 
-                // Greeting
-                Text(
-                    text = stringResource(R.string.provider_greeting, firstName),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Gray900
+            Text(
+                text = title,
+                fontSize = 15.sp,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (isSelected) color else Gray700,
+                modifier = Modifier.weight(1f)
+            )
+
+            RadioButton(
+                selected = isSelected,
+                onClick = onClick,
+                colors = RadioButtonDefaults.colors(
+                    selectedColor = color,
+                    unselectedColor = Gray300
                 )
-            }
-
-            // Notification bell
-            IconButton(onClick = onNotificationClick) {
-                BadgedBox(
-                    badge = {
-                        Badge(
-                            containerColor = ErrorRed,
-                            contentColor = Color.White
-                        ) {
-                            Text("2")
-                        }
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Notifications,
-                        contentDescription = "Notifications",
-                        tint = Gray700,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
+            )
         }
     }
 }

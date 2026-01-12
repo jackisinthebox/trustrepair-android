@@ -237,6 +237,14 @@
     <string name="calendar_title">Mon planning</string>
     <string name="calendar_empty">Aucun travail cette semaine</string>
 
+    <!-- Availability -->
+    <string name="availability_available">Disponible</string>
+    <string name="availability_unavailable">Indisponible</string>
+    <string name="availability_now">Disponible maintenant</string>
+    <string name="availability_today">Indisponible aujourd\'hui</string>
+    <string name="availability_until">Indisponible jusqu\'au…</string>
+    <string name="availability_manage">Gérer mes horaires</string>
+
     <!-- Notifications -->
     <string name="notifications_title">Notifications</string>
     <string name="notifications_new">Nouvelles</string>
