@@ -111,11 +111,16 @@ fun ProviderDashboardScreen(
                 onNotificationClick = { /* Notification action */ }
             )
 
-            // Stats row
-            StatsRow(
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Earnings Hero Card
+            EarningsHeroCard(
                 earnedThisMonth = stats.earnedThisMonth,
-                pendingAmount = stats.pendingAmount,
-                averageRating = stats.averageRating
+                jobsCompleted = stats.jobsCompleted,
+                averageRating = stats.averageRating,
+                responseRate = 95,
+                trendPercentage = 12,
+                onCardClick = onEarningsTab
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -351,93 +356,80 @@ private fun DashboardHeader(
 }
 
 @Composable
-private fun StatsRow(
+private fun EarningsHeroCard(
     earnedThisMonth: Int,
-    pendingAmount: Int,
-    averageRating: Float
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        StatCard(
-            modifier = Modifier.weight(1f),
-            label = stringResource(R.string.provider_stats_month),
-            value = "$earnedThisMonth €",
-            iconBackgroundColor = ProviderPurple.copy(alpha = 0.1f),
-            icon = Icons.Filled.TrendingUp,
-            iconTint = ProviderPurple
-        )
-
-        StatCard(
-            modifier = Modifier.weight(1f),
-            label = stringResource(R.string.provider_stats_pending),
-            value = "$pendingAmount €",
-            iconBackgroundColor = WarningAmberLight,
-            icon = Icons.Filled.Schedule,
-            iconTint = WarningAmber
-        )
-
-        StatCard(
-            modifier = Modifier.weight(1f),
-            label = stringResource(R.string.provider_stats_rating),
-            value = "$averageRating ★",
-            iconBackgroundColor = StarYellow.copy(alpha = 0.2f),
-            icon = Icons.Filled.Star,
-            iconTint = StarYellow
-        )
-    }
-}
-
-@Composable
-private fun StatCard(
-    modifier: Modifier = Modifier,
-    label: String,
-    value: String,
-    iconBackgroundColor: Color,
-    icon: ImageVector,
-    iconTint: Color
+    jobsCompleted: Int,
+    averageRating: Float,
+    responseRate: Int,
+    trendPercentage: Int,
+    onCardClick: () -> Unit
 ) {
     Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clickable(onClick = onCardClick),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(ProviderPurple, ProviderPurpleDark)
+                    )
+                )
+                .padding(20.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(iconBackgroundColor),
-                contentAlignment = Alignment.Center
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.size(18.dp)
+                // Primary earnings amount
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "${java.text.NumberFormat.getInstance(java.util.Locale.FRANCE).format(earnedThisMonth)} €",
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+
+                    // Trend indicator chip
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = SuccessGreen
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.TrendingUp,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = "$trendPercentage% vs mois dernier",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+
+                // Secondary stats row
+                Text(
+                    text = "$jobsCompleted travaux • $averageRating ★ • $responseRate% réponse",
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.8f)
                 )
             }
-
-            Text(
-                text = value,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Gray900
-            )
-
-            Text(
-                text = label,
-                fontSize = 12.sp,
-                color = Gray500
-            )
         }
     }
 }
