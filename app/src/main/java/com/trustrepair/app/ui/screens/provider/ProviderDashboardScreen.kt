@@ -159,14 +159,12 @@ fun ProviderDashboardScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Earnings Hero Card
-            EarningsHeroCard(
+            // Stats Grid (2x2)
+            StatsGrid(
                 earnedThisMonth = stats.earnedThisMonth,
                 jobsCompleted = stats.jobsCompleted,
                 averageRating = stats.averageRating,
-                responseRate = 95,
-                trendPercentage = 12,
-                onCardClick = onEarningsTab
+                onEarningsClick = onEarningsTab
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -610,78 +608,156 @@ private fun AvailabilityOption(
 }
 
 @Composable
-private fun EarningsHeroCard(
+private fun StatsGrid(
     earnedThisMonth: Int,
     jobsCompleted: Int,
     averageRating: Float,
-    responseRate: Int,
-    trendPercentage: Int,
-    onCardClick: () -> Unit
+    onEarningsClick: () -> Unit
 ) {
-    Card(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable(onClick = onCardClick),
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // First row: Earnings and Jobs
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            StatCard(
+                modifier = Modifier.weight(1f),
+                title = "Ce mois",
+                value = earnedThisMonth,
+                suffix = " €",
+                icon = Icons.Filled.TrendingUp,
+                gradientColors = listOf(SuccessGreenLight, Color.White),
+                iconTint = SuccessGreen,
+                onClick = onEarningsClick
+            )
+            StatCard(
+                modifier = Modifier.weight(1f),
+                title = "Travaux",
+                value = jobsCompleted,
+                suffix = "",
+                icon = Icons.Filled.CheckCircle,
+                gradientColors = listOf(ProviderPurpleLight, Color.White),
+                iconTint = ProviderPurple,
+                onClick = {}
+            )
+        }
+
+        // Second row: Rating and Response Rate
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            StatCard(
+                modifier = Modifier.weight(1f),
+                title = "Note moyenne",
+                floatValue = averageRating,
+                suffix = " ★",
+                icon = Icons.Filled.Star,
+                gradientColors = listOf(WarningAmberLight, Color.White),
+                iconTint = WarningAmber,
+                onClick = {}
+            )
+            StatCard(
+                modifier = Modifier.weight(1f),
+                title = "Réponse",
+                value = 95,
+                suffix = "%",
+                icon = Icons.Filled.Speed,
+                gradientColors = listOf(TrustBlueLight, Color.White),
+                iconTint = TrustBlue,
+                onClick = {}
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatCard(
+    modifier: Modifier = Modifier,
+    title: String,
+    value: Int = 0,
+    floatValue: Float? = null,
+    suffix: String,
+    icon: ImageVector,
+    gradientColors: List<Color>,
+    iconTint: Color,
+    onClick: () -> Unit
+) {
+    // Animate the value on first render using Animatable
+    val animatedValue = remember { Animatable(0f) }
+    val animatedFloatValue = remember { Animatable(0f) }
+
+    LaunchedEffect(value) {
+        animatedValue.animateTo(
+            targetValue = value.toFloat(),
+            animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
+        )
+    }
+
+    LaunchedEffect(floatValue) {
+        animatedFloatValue.animateTo(
+            targetValue = floatValue ?: 0f,
+            animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
+        )
+    }
+
+    Card(
+        modifier = modifier
+            .height(120.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .background(
-                    Brush.linearGradient(
-                        colors = listOf(ProviderPurple, ProviderPurpleDark)
-                    )
+                    Brush.verticalGradient(colors = gradientColors)
                 )
-                .padding(20.dp)
         ) {
+            // Background icon (top-left, subtle)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(12.dp)
+                    .size(24.dp)
+                    .align(Alignment.TopStart),
+                tint = iconTint.copy(alpha = 0.3f)
+            )
+
+            // Content
             Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center
             ) {
-                // Primary earnings amount
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = "${java.text.NumberFormat.getInstance(java.util.Locale.FRANCE).format(earnedThisMonth)} €",
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-
-                    // Trend indicator chip
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = SuccessGreen
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.TrendingUp,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = "$trendPercentage% vs mois dernier",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color.White
-                            )
-                        }
-                    }
-                }
-
-                // Secondary stats row
+                // Title
                 Text(
-                    text = "$jobsCompleted travaux • $averageRating ★ • $responseRate% réponse",
-                    fontSize = 14.sp,
-                    color = Color.White.copy(alpha = 0.8f)
+                    text = title,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Gray500
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Value
+                Text(
+                    text = if (floatValue != null) {
+                        "${String.format("%.1f", animatedFloatValue.value)}$suffix"
+                    } else {
+                        "${java.text.NumberFormat.getInstance(java.util.Locale.FRANCE).format(animatedValue.value.toInt())}$suffix"
+                    },
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Gray900
                 )
             }
         }
