@@ -459,3 +459,29 @@ val demoQuoteTemplates = listOf(
     QuoteTemplate("t2", "Fuite simple", listOf("Main d'œuvre" to 60, "Diagnostic" to 40, "Joint" to 15)),
     QuoteTemplate("t3", "Installation robinet", listOf("Main d'œuvre" to 100, "Déplacement" to 30, "Pièces" to 50))
 )
+
+// Provider notifications
+data class ProviderNotification(
+    val id: String,
+    val type: NotificationType,
+    val title: String,
+    val subtitle: String,
+    val timeAgo: String,
+    val isRead: Boolean
+)
+
+enum class NotificationType {
+    NEW_REQUEST,      // ProviderPurple
+    QUOTE_ACCEPTED,   // SuccessGreen
+    PAYMENT_RECEIVED, // SuccessGreen
+    REMINDER,         // WarningAmber
+    SYSTEM            // Gray
+}
+
+val demoNotifications = listOf(
+    ProviderNotification("n1", NotificationType.NEW_REQUEST, "Nouvelle demande", "Marie D. - Plomberie à Versailles", "Il y a 15 min", false),
+    ProviderNotification("n2", NotificationType.QUOTE_ACCEPTED, "Devis accepté !", "Thomas R. a accepté votre devis de 120 €", "Il y a 2h", false),
+    ProviderNotification("n3", NotificationType.PAYMENT_RECEIVED, "Paiement reçu", "150 € crédités sur votre compte", "Hier", true),
+    ProviderNotification("n4", NotificationType.REMINDER, "Rappel RDV demain", "Sophie L. - Lundi 14h-17h", "Hier", true),
+    ProviderNotification("n5", NotificationType.SYSTEM, "Mise à jour disponible", "Nouvelle version 1.1.0", "Il y a 3 jours", true)
+)

@@ -237,6 +237,12 @@
     <string name="calendar_title">Mon planning</string>
     <string name="calendar_empty">Aucun travail cette semaine</string>
 
+    <!-- Notifications -->
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_new">Nouvelles</string>
+    <string name="notifications_older">Plus anciennes</string>
+    <string name="notifications_empty">Tout est à jour !</string>
+
     <!-- Job Completion -->
     <string name="completion_photos_title">Photos du travail terminé</string>
     <string name="completion_amount_title">Confirmer le montant final</string>

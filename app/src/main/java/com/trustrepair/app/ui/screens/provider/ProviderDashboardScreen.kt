@@ -66,6 +66,7 @@ fun ProviderDashboardScreen(
     onActiveJobsTab: () -> Unit,
     onEarningsTab: () -> Unit,
     onProfileTab: () -> Unit,
+    onNotificationClick: () -> Unit,
     onLogout: () -> Unit
 ) {
     val provider = currentProvider
@@ -108,7 +109,7 @@ fun ProviderDashboardScreen(
                 firstName = provider.firstName,
                 initials = "${provider.firstName.first()}${provider.lastName.first()}",
                 avatarColor = provider.avatarColor,
-                onNotificationClick = { /* Notification action */ }
+                onNotificationClick = onNotificationClick
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -686,6 +687,7 @@ private fun ProviderDashboardScreenPreview() {
             onActiveJobsTab = {},
             onEarningsTab = {},
             onProfileTab = {},
+            onNotificationClick = {},
             onLogout = {}
         )
     }

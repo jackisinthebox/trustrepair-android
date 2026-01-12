@@ -123,11 +123,18 @@ fun TrustRepairApp() {
                 onActiveJobsTab = { navController.navigate(Screen.Calendar.route) },
                 onEarningsTab = { navController.navigate(Screen.Earnings.route) },
                 onProfileTab = { navController.navigate(Screen.ProviderProfile.route) },
+                onNotificationClick = { navController.navigate(Screen.Notifications.route) },
                 onLogout = {
                     navController.navigate(Screen.Welcome.route) {
                         popUpTo(Screen.Welcome.route) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(Screen.Notifications.route) {
+            NotificationScreen(
+                onBack = { navController.popBackStack() }
             )
         }
 
