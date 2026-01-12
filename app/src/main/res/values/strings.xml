@@ -237,6 +237,17 @@
     <string name="calendar_title">Mon planning</string>
     <string name="calendar_empty">Aucun travail cette semaine</string>
 
+    <!-- Job Completion -->
+    <string name="completion_photos_title">Photos du travail terminé</string>
+    <string name="completion_amount_title">Confirmer le montant final</string>
+    <string name="completion_signature_title">Signature du client</string>
+    <string name="completion_signature_hint">Le client signe ici</string>
+    <string name="completion_confirm">Conforme au devis</string>
+    <string name="completion_adjusted">Montant ajusté</string>
+    <string name="completion_finish">Terminer</string>
+    <string name="completion_success">Travail terminé avec succès !</string>
+    <string name="completion_camera_coming">Appareil photo à venir</string>
+
     <!-- Common -->
     <string name="back">Retour</string>
     <string name="close">Fermer</string>

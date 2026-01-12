@@ -27,6 +27,7 @@ import com.trustrepair.app.R
 import com.trustrepair.app.data.ActiveJob
 import com.trustrepair.app.data.JobStatus
 import com.trustrepair.app.data.demoActiveJobs
+import com.trustrepair.app.ui.components.CompletionBottomSheet
 import com.trustrepair.app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,7 +46,12 @@ fun JobDetailScreen(
     // Overflow menu state
     var showMenu by remember { mutableStateOf(false) }
 
+    // Completion bottom sheet state
+    var showCompletionSheet by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -108,7 +114,7 @@ fun JobDetailScreen(
                     currentStatus = newStatus
                 },
                 onSendQuote = onSendQuote,
-                onComplete = onComplete
+                onComplete = { showCompletionSheet = true }
             )
         },
         containerColor = Gray50
@@ -176,6 +182,19 @@ fun JobDetailScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+    }
+
+    // Completion bottom sheet
+    if (showCompletionSheet) {
+        CompletionBottomSheet(
+            job = job,
+            onDismiss = { showCompletionSheet = false },
+            onComplete = {
+                showCompletionSheet = false
+                onComplete()
+            },
+            snackbarHostState = snackbarHostState
+        )
     }
 }
 
