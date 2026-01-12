@@ -3,11 +3,13 @@ package com.trustrepair.app.ui.screens.provider
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trustrepair.app.R
 import com.trustrepair.app.data.*
+import com.trustrepair.app.ui.components.JobTypeIcon
 import com.trustrepair.app.ui.components.debouncedClickableWithRipple
 import com.trustrepair.app.ui.theme.*
 
@@ -224,14 +227,25 @@ private fun PipelineWidget(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                pipelineStages.forEach { stage ->
+                pipelineStages.forEachIndexed { index, stage ->
                     val count = jobCountsByStatus[stage.status] ?: 0
                     PipelineStageItem(
                         stage = stage,
                         count = count
                     )
+
+                    // Arrow between stages (except after last)
+                    if (index < pipelineStages.lastIndex) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = Gray400,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
                 }
             }
 
@@ -709,8 +723,13 @@ private fun DashboardJobCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .debouncedClickableWithRipple(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(color = ProviderPurple),
+                onClick = onClick
+            ),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -755,11 +774,21 @@ private fun DashboardJobCard(
                             fontWeight = FontWeight.SemiBold,
                             color = Gray900
                         )
-                        Text(
-                            text = job.jobType,
-                            fontSize = 14.sp,
-                            color = Gray500
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            JobTypeIcon(
+                                jobType = job.jobType,
+                                modifier = Modifier.size(20.dp),
+                                tint = Gray500
+                            )
+                            Text(
+                                text = job.jobType,
+                                fontSize = 14.sp,
+                                color = Gray500
+                            )
+                        }
                     }
                 }
 
@@ -813,7 +842,7 @@ private fun DashboardJobCard(
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
-                            text = if (job.timeSlot.isNotEmpty()) "${job.date}, ${job.timeSlot}" else job.date,
+                            text = job.displayDate,
                             fontSize = 13.sp,
                             color = Gray600
                         )

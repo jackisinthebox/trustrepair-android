@@ -309,7 +309,13 @@ data class ActiveJob(
     val availability: String = "",         // For early stages
     val receivedAgo: String = "",          // For display "Il y a X"
     val expiresIn: String = ""             // For pending quotes
-)
+) {
+    val displayDate: String get() = when {
+        date.isEmpty() -> "À planifier"
+        date == "Aujourd'hui" -> "Aujourd'hui, $timeSlot"
+        else -> "$date, $timeSlot"
+    }
+}
 
 // All jobs in the pipeline (unified view)
 val demoActiveJobs = listOf(

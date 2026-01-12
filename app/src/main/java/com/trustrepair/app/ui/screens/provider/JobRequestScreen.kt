@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.trustrepair.app.R
 import com.trustrepair.app.data.JobRequest
 import com.trustrepair.app.data.demoJobRequests
+import com.trustrepair.app.ui.components.JobTypeIcon
 import com.trustrepair.app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -276,11 +277,10 @@ private fun JobDetailsCard(
                         .background(TrustBlueLight),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Build,
-                        contentDescription = null,
-                        tint = TrustBlue,
-                        modifier = Modifier.size(20.dp)
+                    JobTypeIcon(
+                        jobType = jobType,
+                        modifier = Modifier.size(24.dp),
+                        tint = TrustBlue
                     )
                 }
                 Text(

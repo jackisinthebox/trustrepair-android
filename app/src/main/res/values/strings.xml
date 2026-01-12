@@ -262,6 +262,10 @@
     <string name="completion_success">Travail terminé avec succès !</string>
     <string name="completion_camera_coming">Appareil photo à venir</string>
 
+    <!-- Error States -->
+    <string name="error_title">Une erreur est survenue</string>
+    <string name="error_retry">Réessayer</string>
+
     <!-- Common -->
     <string name="back">Retour</string>
     <string name="close">Fermer</string>

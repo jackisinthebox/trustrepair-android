@@ -29,6 +29,7 @@ import com.trustrepair.app.data.ActiveJob
 import com.trustrepair.app.data.JobStatus
 import com.trustrepair.app.data.demoActiveJobs
 import com.trustrepair.app.ui.components.EmptyState
+import com.trustrepair.app.ui.components.JobTypeIcon
 import com.trustrepair.app.ui.components.debouncedClickableWithRipple
 import com.trustrepair.app.ui.theme.*
 
@@ -260,11 +261,21 @@ private fun PipelineJobCard(
                             fontWeight = FontWeight.SemiBold,
                             color = Gray900
                         )
-                        Text(
-                            text = job.jobType,
-                            fontSize = 14.sp,
-                            color = Gray500
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            JobTypeIcon(
+                                jobType = job.jobType,
+                                modifier = Modifier.size(20.dp),
+                                tint = Gray500
+                            )
+                            Text(
+                                text = job.jobType,
+                                fontSize = 14.sp,
+                                color = Gray500
+                            )
+                        }
                     }
                 }
 
@@ -341,7 +352,7 @@ private fun PipelineJobCard(
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = if (job.timeSlot.isNotEmpty()) "${job.date}, ${job.timeSlot}" else job.date,
+                        text = job.displayDate,
                         fontSize = 13.sp,
                         color = Gray600
                     )

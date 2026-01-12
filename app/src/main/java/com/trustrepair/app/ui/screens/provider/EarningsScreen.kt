@@ -385,19 +385,21 @@ private fun StatCard(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier.height(120.dp),
         shape = RoundedCornerShape(12.dp),
         color = Color.White,
         border = androidx.compose.foundation.BorderStroke(1.dp, Gray200)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = value,
-                fontSize = 18.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Gray900
             )

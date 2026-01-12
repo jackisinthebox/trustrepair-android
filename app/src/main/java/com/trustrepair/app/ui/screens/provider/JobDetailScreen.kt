@@ -28,7 +28,19 @@ import com.trustrepair.app.data.ActiveJob
 import com.trustrepair.app.data.JobStatus
 import com.trustrepair.app.data.demoActiveJobs
 import com.trustrepair.app.ui.components.CompletionBottomSheet
+import com.trustrepair.app.ui.components.ErrorState
+import com.trustrepair.app.ui.components.JobTypeIcon
+import com.trustrepair.app.ui.components.LoadingState
+import com.trustrepair.app.ui.components.LoadingVariant
 import com.trustrepair.app.ui.theme.*
+import kotlinx.coroutines.delay
+
+// UI State for JobDetailScreen
+private sealed class JobDetailUiState {
+    data object Loading : JobDetailUiState()
+    data class Error(val message: String) : JobDetailUiState()
+    data class Success(val job: ActiveJob) : JobDetailUiState()
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,10 +50,25 @@ fun JobDetailScreen(
     onSendQuote: (String) -> Unit = {},
     onComplete: () -> Unit
 ) {
-    val job = demoActiveJobs.find { it.id == jobId } ?: demoActiveJobs[0]
+    // UI State management
+    var uiState by remember { mutableStateOf<JobDetailUiState>(JobDetailUiState.Loading) }
 
-    // Mutable status for simulation
-    var currentStatus by remember { mutableStateOf(job.status) }
+    // Mutable status for simulation - lifted to share between bottomBar and content
+    var currentStatus by remember { mutableStateOf<JobStatus?>(null) }
+
+    // Simulate loading with LaunchedEffect
+    LaunchedEffect(jobId) {
+        uiState = JobDetailUiState.Loading
+        currentStatus = null
+        delay(500) // Simulate network delay
+        val foundJob = demoActiveJobs.find { it.id == jobId }
+        uiState = if (foundJob != null) {
+            currentStatus = foundJob.status
+            JobDetailUiState.Success(foundJob)
+        } else {
+            JobDetailUiState.Error("Travail non trouvé")
+        }
+    }
 
     // Overflow menu state
     var showMenu by remember { mutableStateOf(false) }
@@ -107,94 +134,126 @@ fun JobDetailScreen(
             )
         },
         bottomBar = {
-            ActionButton(
-                status = currentStatus,
-                jobId = jobId,
-                onStatusChange = { newStatus ->
-                    currentStatus = newStatus
-                },
-                onSendQuote = onSendQuote,
-                onComplete = { showCompletionSheet = true }
-            )
+            // Only show action button when in Success state and status is available
+            if (uiState is JobDetailUiState.Success && currentStatus != null) {
+                ActionButton(
+                    status = currentStatus!!,
+                    jobId = jobId,
+                    onStatusChange = { newStatus ->
+                        currentStatus = newStatus
+                    },
+                    onSendQuote = onSendQuote,
+                    onComplete = { showCompletionSheet = true }
+                )
+            }
         },
         containerColor = Gray50
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-        ) {
-            // Status banner
-            StatusBanner(
-                status = currentStatus,
-                date = job.date,
-                timeSlot = job.timeSlot,
-                urgency = job.urgency,
-                expiresIn = job.expiresIn
-            )
-
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Client card
-                ClientCard(
-                    name = job.client.name,
-                    initials = job.client.initials,
-                    phone = job.client.phone,
-                    onMessage = { /* Message action */ },
-                    onCall = { /* Call action */ }
+        when (val state = uiState) {
+            is JobDetailUiState.Loading -> {
+                LoadingState(
+                    variant = LoadingVariant.DETAIL,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
                 )
+            }
 
-                // Job info card
-                JobInfoCard(
-                    jobType = job.jobType,
-                    description = job.description,
-                    photos = emptyList(),
-                    instructions = job.accessNotes,
-                    urgency = job.urgency,
-                    availability = job.availability
+            is JobDetailUiState.Error -> {
+                ErrorState(
+                    onRetry = {
+                        uiState = JobDetailUiState.Loading
+                        // Trigger reload by changing state - in real app, would call viewModel
+                    },
+                    subtitle = state.message,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
                 )
+            }
 
-                // Access card
-                AccessCard(
-                    address = job.address,
-                    accessCode = job.accessCode,
-                    accessNotes = job.accessNotes,
-                    onOpenMaps = { /* Open maps */ }
-                )
+            is JobDetailUiState.Success -> {
+                val job = state.job
+                val displayStatus = currentStatus ?: job.status
 
-                // Price card (only if quote exists)
-                job.priceBreakdown?.let { breakdown ->
-                    PriceCard(
-                        laborPrice = breakdown.labor,
-                        partsPrice = breakdown.parts,
-                        totalPrice = breakdown.total,
-                        isFixed = job.isFixed ?: true
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    // Status banner
+                    StatusBanner(
+                        status = displayStatus,
+                        date = job.date,
+                        timeSlot = job.timeSlot,
+                        urgency = job.urgency,
+                        expiresIn = job.expiresIn
                     )
-                } ?: run {
-                    // No quote yet placeholder
-                    NoQuoteCard()
+
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Client card
+                        ClientCard(
+                            name = job.client.name,
+                            initials = job.client.initials,
+                            phone = job.client.phone,
+                            onMessage = { /* Message action */ },
+                            onCall = { /* Call action */ }
+                        )
+
+                        // Job info card
+                        JobInfoCard(
+                            jobType = job.jobType,
+                            description = job.description,
+                            photos = emptyList(),
+                            instructions = job.accessNotes,
+                            urgency = job.urgency,
+                            availability = job.availability
+                        )
+
+                        // Access card
+                        AccessCard(
+                            address = job.address,
+                            accessCode = job.accessCode,
+                            accessNotes = job.accessNotes,
+                            onOpenMaps = { /* Open maps */ }
+                        )
+
+                        // Price card (only if quote exists)
+                        job.priceBreakdown?.let { breakdown ->
+                            PriceCard(
+                                laborPrice = breakdown.labor,
+                                partsPrice = breakdown.parts,
+                                totalPrice = breakdown.total,
+                                isFixed = job.isFixed ?: true
+                            )
+                        } ?: run {
+                            // No quote yet placeholder
+                            NoQuoteCard()
+                        }
+
+                        // Bottom spacing
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
 
-                // Bottom spacing
-                Spacer(modifier = Modifier.height(16.dp))
+                // Completion bottom sheet
+                if (showCompletionSheet) {
+                    CompletionBottomSheet(
+                        job = job,
+                        onDismiss = { showCompletionSheet = false },
+                        onComplete = {
+                            showCompletionSheet = false
+                            onComplete()
+                        },
+                        snackbarHostState = snackbarHostState
+                    )
+                }
             }
         }
-    }
-
-    // Completion bottom sheet
-    if (showCompletionSheet) {
-        CompletionBottomSheet(
-            job = job,
-            onDismiss = { showCompletionSheet = false },
-            onComplete = {
-                showCompletionSheet = false
-                onComplete()
-            },
-            snackbarHostState = snackbarHostState
-        )
     }
 }
 
@@ -484,11 +543,10 @@ private fun JobInfoCard(
                         .background(TrustBlueLight),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Build,
-                        contentDescription = null,
-                        tint = TrustBlue,
-                        modifier = Modifier.size(20.dp)
+                    JobTypeIcon(
+                        jobType = jobType,
+                        modifier = Modifier.size(24.dp),
+                        tint = TrustBlue
                     )
                 }
                 Text(
