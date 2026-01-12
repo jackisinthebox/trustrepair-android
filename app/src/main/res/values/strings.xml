@@ -166,6 +166,9 @@
     <string name="quote_builder_message">Message au client (optionnel)</string>
     <string name="quote_builder_preview">Aperçu</string>
     <string name="quote_builder_submit">Envoyer le devis</string>
+    <string name="quote_templates">Modèles</string>
+    <string name="quote_save_template">Enregistrer</string>
+    <string name="quote_template_saved">Modèle enregistré !</string>
     
     <!-- Active Jobs (Pipeline) -->
     <string name="active_jobs_title">Mes travaux</string>

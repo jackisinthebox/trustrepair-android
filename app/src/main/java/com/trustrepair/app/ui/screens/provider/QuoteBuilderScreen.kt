@@ -1,8 +1,10 @@
 package com.trustrepair.app.ui.screens.provider
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,7 +29,10 @@ import androidx.compose.ui.unit.sp
 import com.trustrepair.app.R
 import com.trustrepair.app.data.demoPriceBreakdown
 import com.trustrepair.app.data.demoJobRequests
+import com.trustrepair.app.data.demoQuoteTemplates
+import com.trustrepair.app.data.QuoteTemplate
 import com.trustrepair.app.ui.theme.*
+import kotlinx.coroutines.launch
 
 // Line item data class
 private data class LineItem(
@@ -103,7 +108,13 @@ fun QuoteBuilderScreen(
     // Calculate total
     val total = lineItems.sumOf { it.amount.toIntOrNull() ?: 0 }
 
+    // Snackbar state
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val templateSavedMessage = stringResource(R.string.quote_template_saved)
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -149,6 +160,24 @@ fun QuoteBuilderScreen(
                 clientName = jobRequest.client.name,
                 jobType = jobRequest.jobType,
                 location = jobRequest.location
+            )
+
+            // Templates section
+            TemplatesSection(
+                templates = demoQuoteTemplates,
+                onTemplateSelect = { template ->
+                    // Replace line items with template items
+                    lineItems.clear()
+                    template.lineItems.forEachIndexed { index, (description, amount) ->
+                        lineItems.add(LineItem(index + 1, description, amount.toString()))
+                    }
+                    nextId = template.lineItems.size + 1
+                },
+                onSaveTemplate = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(templateSavedMessage)
+                    }
+                }
             )
 
             // Line items section
@@ -257,6 +286,100 @@ private fun JobSummaryCard(
                 fontWeight = FontWeight.Medium,
                 color = Gray700
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TemplatesSection(
+    templates: List<QuoteTemplate>,
+    onTemplateSelect: (QuoteTemplate) -> Unit,
+    onSaveTemplate: () -> Unit
+) {
+    var selectedTemplateId by remember { mutableStateOf<String?>(null) }
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Header row with title and save button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.quote_templates),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Gray900
+            )
+
+            OutlinedButton(
+                onClick = onSaveTemplate,
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = ProviderPurple
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, ProviderPurple),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = stringResource(R.string.quote_save_template),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+
+        // Templates chips in a horizontal scroll
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            templates.forEach { template ->
+                val isSelected = selectedTemplateId == template.id
+                FilterChip(
+                    selected = isSelected,
+                    onClick = {
+                        selectedTemplateId = template.id
+                        onTemplateSelect(template)
+                    },
+                    label = {
+                        Text(
+                            text = template.name,
+                            fontSize = 13.sp
+                        )
+                    },
+                    leadingIcon = if (isSelected) {
+                        {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    } else null,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = Color.White,
+                        labelColor = Gray700,
+                        selectedContainerColor = ProviderPurple,
+                        selectedLabelColor = Color.White,
+                        selectedLeadingIconColor = Color.White
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        borderColor = Gray300,
+                        selectedBorderColor = ProviderPurple
+                    )
+                )
+            }
         }
     }
 }

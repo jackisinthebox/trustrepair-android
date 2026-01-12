@@ -446,3 +446,16 @@ val demoTransactions = listOf(
     Transaction("tx4", "Anne S.", "Robinet", 150, "8 jan", true),
     Transaction("tx5", "Sophie L.", "Robinet cuisine", 150, "En cours", false)
 )
+
+// Quote templates for quick quote creation
+data class QuoteTemplate(
+    val id: String,
+    val name: String,
+    val lineItems: List<Pair<String, Int>> // description, amount
+)
+
+val demoQuoteTemplates = listOf(
+    QuoteTemplate("t1", "Débouchage standard", listOf("Main d'œuvre" to 80, "Déplacement" to 30)),
+    QuoteTemplate("t2", "Fuite simple", listOf("Main d'œuvre" to 60, "Diagnostic" to 40, "Joint" to 15)),
+    QuoteTemplate("t3", "Installation robinet", listOf("Main d'œuvre" to 100, "Déplacement" to 30, "Pièces" to 50))
+)
