@@ -29,6 +29,7 @@ import com.trustrepair.app.R
 import com.trustrepair.app.data.Transaction
 import com.trustrepair.app.data.demoProviderStats
 import com.trustrepair.app.data.demoTransactions
+import com.trustrepair.app.ui.components.EmptyState
 import com.trustrepair.app.ui.theme.*
 
 // Period filter options
@@ -125,9 +126,22 @@ fun EarningsScreen(
                 )
             }
 
-            // Transaction list
-            items(demoTransactions, key = { it.id }) { transaction ->
-                TransactionItem(transaction = transaction)
+            // Transaction list or empty state
+            if (demoTransactions.isEmpty()) {
+                item {
+                    EmptyState(
+                        icon = Icons.Filled.Wallet,
+                        title = "Pas encore de revenus",
+                        subtitle = "Terminez votre premier travail",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    )
+                }
+            } else {
+                items(demoTransactions, key = { it.id }) { transaction ->
+                    TransactionItem(transaction = transaction)
+                }
             }
 
             // Bottom spacing

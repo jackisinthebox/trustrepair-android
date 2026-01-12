@@ -26,6 +26,7 @@ import com.trustrepair.app.R
 import com.trustrepair.app.data.NotificationType
 import com.trustrepair.app.data.ProviderNotification
 import com.trustrepair.app.data.demoNotifications
+import com.trustrepair.app.ui.components.EmptyState
 import com.trustrepair.app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +84,9 @@ fun NotificationScreen(
     ) { padding ->
         if (notifications.isEmpty()) {
             // Empty state
-            EmptyNotificationsState(
+            EmptyState(
+                icon = Icons.Filled.Notifications,
+                title = stringResource(R.string.notifications_empty),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
@@ -261,43 +264,6 @@ private fun NotificationItem(
     )
 }
 
-@Composable
-private fun EmptyNotificationsState(
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(SuccessGreenLight),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = null,
-                    tint = SuccessGreen,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-
-            Text(
-                text = stringResource(R.string.notifications_empty),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Gray600
-            )
-        }
-    }
-}
-
 private fun getNotificationStyle(type: NotificationType): Triple<Color, Color, ImageVector> {
     return when (type) {
         NotificationType.NEW_REQUEST -> Triple(
@@ -367,12 +333,3 @@ private fun NotificationItemPreview() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun EmptyNotificationsStatePreview() {
-    TrustRepairTheme {
-        EmptyNotificationsState(
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}

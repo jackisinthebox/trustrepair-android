@@ -28,6 +28,7 @@ import com.trustrepair.app.R
 import com.trustrepair.app.data.ActiveJob
 import com.trustrepair.app.data.JobStatus
 import com.trustrepair.app.data.demoActiveJobs
+import com.trustrepair.app.ui.components.EmptyState
 import com.trustrepair.app.ui.components.debouncedClickableWithRipple
 import com.trustrepair.app.ui.theme.*
 
@@ -45,7 +46,8 @@ private enum class PipelineFilter(val labelResId: Int, val statuses: List<JobSta
 @Composable
 fun ActiveJobsScreen(
     onBack: () -> Unit,
-    onJobClick: (String) -> Unit
+    onJobClick: (String) -> Unit,
+    onViewRequests: () -> Unit = {}
 ) {
     var selectedFilter by remember { mutableStateOf(PipelineFilter.ALL) }
 
@@ -100,7 +102,14 @@ fun ActiveJobsScreen(
 
             // Jobs list or empty state
             if (filteredJobs.isEmpty()) {
-                EmptyState()
+                EmptyState(
+                    icon = Icons.Filled.Work,
+                    title = "Aucun travail",
+                    subtitle = "Répondez aux demandes pour remplir votre planning",
+                    ctaText = "Voir les demandes",
+                    onCtaClick = onViewRequests,
+                    modifier = Modifier.fillMaxSize()
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -444,40 +453,6 @@ fun StatusBadge(status: JobStatus) {
     }
 }
 
-@Composable
-private fun EmptyState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(Gray100),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Work,
-                    contentDescription = null,
-                    tint = Gray400,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-
-            Text(
-                text = stringResource(R.string.active_jobs_empty_filter),
-                fontSize = 16.sp,
-                color = Gray500,
-                fontWeight = FontWeight.Medium
-            )
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -485,7 +460,8 @@ private fun ActiveJobsScreenPreview() {
     TrustRepairTheme {
         ActiveJobsScreen(
             onBack = {},
-            onJobClick = {}
+            onJobClick = {},
+            onViewRequests = {}
         )
     }
 }
