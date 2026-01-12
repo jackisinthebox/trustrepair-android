@@ -120,7 +120,7 @@ fun TrustRepairApp() {
                 onActiveJobClick = { jobId ->
                     navController.navigate(Screen.JobDetail.createRoute(jobId))
                 },
-                onActiveJobsTab = { navController.navigate(Screen.ActiveJobs.route) },
+                onActiveJobsTab = { navController.navigate(Screen.Calendar.route) },
                 onEarningsTab = { navController.navigate(Screen.Earnings.route) },
                 onProfileTab = { navController.navigate(Screen.ProviderProfile.route) },
                 onLogout = {
@@ -168,6 +168,17 @@ fun TrustRepairApp() {
                 onJobClick = { jobId ->
                     navController.navigate(Screen.JobDetail.createRoute(jobId))
                 }
+            )
+        }
+
+        composable(Screen.Calendar.route) {
+            CalendarScreen(
+                onJobClick = { jobId ->
+                    navController.navigate(Screen.JobDetail.createRoute(jobId))
+                },
+                onDashboardTab = { navController.navigate(Screen.ProviderDashboard.route) },
+                onEarningsTab = { navController.navigate(Screen.Earnings.route) },
+                onProfileTab = { navController.navigate(Screen.ProviderProfile.route) }
             )
         }
 

@@ -27,6 +27,7 @@ sealed class Screen(val route: String) {
         fun createRoute(jobId: String) = "provider/quote-builder/$jobId"
     }
     data object ActiveJobs : Screen("provider/active-jobs")
+    data object Calendar : Screen("provider/calendar")
     data object JobDetail : Screen("provider/job-detail/{jobId}") {
         fun createRoute(jobId: String) = "provider/job-detail/$jobId"
     }

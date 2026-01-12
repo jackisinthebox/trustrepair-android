@@ -230,6 +230,10 @@
     <string name="profile_logout">Se déconnecter</string>
     <string name="profile_version">Version %s</string>
     
+    <!-- Calendar -->
+    <string name="calendar_title">Mon planning</string>
+    <string name="calendar_empty">Aucun travail cette semaine</string>
+
     <!-- Common -->
     <string name="back">Retour</string>
     <string name="close">Fermer</string>
